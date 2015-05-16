@@ -5,6 +5,7 @@
     <title>Folkol Nordea Balance Plotter</title>
     <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="Chart.min.js"></script>
+    <script type="text/javascript" src="papaparse.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -32,8 +33,24 @@
         droparea.hide();
         note.show();
 
-        var data = {
-            labels: ["January", "February", "March", "April", "May", "June", "July"],
+        var labels = [];
+        var datapoints = [];
+        var options = {newline: "\n", header: true, skipEmptyLines: true};
+        var records = Papa.parse(localStorage['csv'], options);
+        var result = {};
+        records.data.forEach(function (e) {
+            if (e.Saldo && !result[e.Datum]) {
+                var balance = parseInt(e.Saldo.replace('.', '').replace(',', '.'));
+                labels.push(e.Datum);
+                datapoints.push(balance);
+                result[e.Datum] = balance;
+            }
+        });
+        labels.reverse();
+        datapoints.reverse();
+        console.log(result);
+        plot = chart.Line({
+            labels: labels,
             datasets: [
                 {
                     label: "My Second dataset",
@@ -43,17 +60,10 @@
                     pointStrokeColor: "#fff",
                     pointHighlightFill: "#fff",
                     pointHighlightStroke: "rgba(151,187,205,1)",
-                    data: [28, 48, 40, 19, 86, 27, 90]
+                    data: datapoints
                 }
             ]
-        };
-
-        localStorage['csv'].split('\n').forEach(function (e, i) {
-            $('#files').text(e);
-            console.log('>' + e);
-        });
-
-        plot = chart.Line(data, {});
+        }, {});
     }
 
     var parseFile = function (file) {
@@ -62,7 +72,7 @@
             localStorage['csv'] = event.target.result;
             render();
         };
-        reader.readAsText(file);
+        reader.readAsText(file, 'utf-8');
     };
     window.ondragover = function (e) {
         e.preventDefault();
