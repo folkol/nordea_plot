@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset=utf-8>
+    <title>Folkol Nordea Balance Plotter</title>
+    <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="Chart.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div id="droparea">
+    <p title="Nordea > Internet bank > Account > Export">Drop export.csv</p>
+</div>
+<canvas id="myChart"></canvas>
+<button id="clear">Clear</button>
+<script>
+    function render() {
+        var canvas = $('#myChart');
+        var droparea = $('#droparea');
+        var clearbutton = $('#clear');
+
+        if(!localStorage['csv']) {
+            droparea.show();
+            canvas.empty();
+            clearbutton.hide();
+            return;
+        }
+
+        droparea.hide();
+        clearbutton.show();
+        $('body').append('<canvas id="myChart">');
+
+        var data = {
+            labels: ["January", "February", "March", "April", "May", "June", "July"],
+            datasets: [
+                {
+                    label: "My Second dataset",
+                    fillColor: "rgba(151,187,205,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: [28, 48, 40, 19, 86, 27, 90]
+                }
+            ]
+        };
+
+        localStorage['csv'].split('\n').forEach(function (e, i) {
+            $('#files').text(e);
+            console.log('>' + e);
+        });
+
+        var ctx = canvas.get(0).getContext("2d");
+        new Chart(ctx).Line(data, {});
+    }
+
+    var parseFile = function (file) {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            localStorage['csv'] = event.target.result;
+            render();
+        };
+        reader.readAsText(file);
+    };
+    window.ondragover = function (e) {
+        e.preventDefault();
+        $("#droparea").addClass("hover");
+    };
+    window.ondragleave = function (e) {
+        e.preventDefault();
+        $("#droparea").removeClass("hover");
+    };
+    window.ondrop = function (e) {
+        e.preventDefault();
+        $("#droparea").removeClass("hover");
+
+        var files = e.dataTransfer.files;
+        Array.prototype.slice.call(files).forEach(parseFile);
+    };
+
+    $("#clear").click(function() {
+        delete localStorage['csv'];
+        $('#myChart').remove();
+        render();
+    });
+    render();
+</script>
+</body>
+</html>
