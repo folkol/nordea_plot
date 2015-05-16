@@ -32,3 +32,11 @@ html, body {
   right: 0;
   top: 0;
 }
+#note {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-style: italic;
+  margin: 10px;
+  color: gray;
+}
